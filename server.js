@@ -3,16 +3,13 @@ const app = express();
 const mongoose = require('mongoose');
 require('dotenv').config();
 
-// Middleware (lets you read JSON from requests)
+// Middleware
 app.use(express.json());
 
 // Connect to MongoDB
-mongoose.connect(process.env.DATABASE_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true
-})
-.then(() => console.log('MongoDB connected'))
-.catch(err => console.log(err));
+mongoose.connect(process.env.DATABASE_URI)
+  .then(() => console.log('MongoDB connected'))
+  .catch(err => console.error('MongoDB connection error:', err));
 
 // Simple test route
 app.get('/', (req, res) => {
