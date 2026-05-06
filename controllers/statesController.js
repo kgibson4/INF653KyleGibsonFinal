@@ -2,24 +2,39 @@ const State = require('../models/States');
 const data = require('../data/statesData.json');
 
 const getAllStates = async (req, res) => {
-  try {
-    const statesDB = await State.find();
 
-    const mergedStates = data.map(state => {
-      const match = statesDB.find(
-        db => db.stateCode === state.code
-      );
+  // DIAGNOSTIC LOGS
+    console.log("Current DB Name:", mongoose.connection.name); 
+    console.log("Model Collection Name:", State.collection.name);
 
-      return {
-        ...state,
-        funfacts: match ? match.funfacts : []
-      };
-    });
+    // 1. Handle the 'contig' query parameter (Requirement 6)
+    const { contig } = req.query;
+    let statesList = [...data];
 
-    res.json(mergedStates);
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
+    if (contig === 'true') {
+        statesList = data.filter(st => st.code !== 'AK' && st.code !== 'HI');
+    } else if (contig === 'false') {
+        statesList = data.filter(st => st.code === 'AK' || st.code === 'HI');
+    }
+
+    try {
+        const statesDB = await State.find();
+        console.log("Documents found in MongoDB:", statesDB.length);
+
+        const mergedStates = statesList.map(state => {
+            const match = statesDB.find(db => db.stateCode === state.code);
+            
+            // Only add the funfacts array if a match is found
+            return {
+                ...state,
+                ...(match && { funfacts: match.funfacts })
+            };
+        });
+
+        res.json(mergedStates);
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
 };
 
 const getState = async (req, res) => {
@@ -35,6 +50,7 @@ const getState = async (req, res) => {
   try {
     // Find fun facts in MongoDB
     const stateDB = await State.findOne({ stateCode });
+    console.log("STATE FOUND:", stateDB);
 
     const result = {
       ...state,
