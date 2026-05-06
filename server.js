@@ -5,6 +5,7 @@ require('dotenv').config();
 
 // Middleware
 app.use(express.json());
+app.use('/states', require('./routes/states'));
 
 // Connect to MongoDB
 mongoose.connect(process.env.DATABASE_URI)
