@@ -1,5 +1,6 @@
 const State = require('../models/States');
 const data = require('../data/statesData.json');
+const mongoose = require('mongoose');
 
 const getAllStates = async (req, res) => {
 
@@ -86,7 +87,87 @@ const getFunFact = async (req, res) => {
   }
 };
 
+// GET State Capital
+const getStateCapital = (req, res) => {
+    const stateCode = req.params.state.toUpperCase();
+    const state = data.find(st => st.code === stateCode);
+    if (!state) return res.status(400).json({ "message": "Invalid state abbreviation parameter" });
+    res.json({ "state": state.state, "capital": state.capital_city });
+};
+
+// GET State Nickname
+const getStateNickname = (req, res) => {
+    const stateCode = req.params.state.toUpperCase();
+    const state = data.find(st => st.code === stateCode);
+    if (!state) return res.status(400).json({ "message": "Invalid state abbreviation parameter" });
+    res.json({ "state": state.state, "nickname": state.nickname });
+};
+
+// POST Fun Facts
+const createFunFact = async (req, res) => {
+    const stateCode = req.params.state.toUpperCase();
+    const { funfacts } = req.body;
+
+    if (!funfacts) return res.status(400).json({ "message": "State fun facts value required" });
+    if (!Array.isArray(funfacts)) return res.status(400).json({ "message": "State fun facts value must be an array" });
+
+    try {
+        const result = await State.findOneAndUpdate(
+            { stateCode },
+            { $push: { funfacts: { $each: funfacts } } },
+            { upsert: true, new: true }
+        );
+        res.json(result);
+    } catch (err) {
+        res.status(500).json({ "message": err.message });
+    }
+};
+
+// PATCH Fun Fact
+const updateFunFact = async (req, res) => {
+    const stateCode = req.params.state.toUpperCase();
+    const { index, funfact } = req.body;
+
+    if (!index) return res.status(400).json({ "message": "State fun fact index value required" });
+    if (!funfact) return res.status(400).json({ "message": "State fun fact value required" });
+
+    try {
+        const stateDB = await State.findOne({ stateCode });
+        if (!stateDB || !stateDB.funfacts[index - 1]) {
+            return res.status(400).json({ "message": `No fun fact found at that index for ${stateCode}` });
+        }
+
+        stateDB.funfacts[index - 1] = funfact; // Adjusting 1-based index to 0-based[cite: 1]
+        const result = await stateDB.save();
+        res.json(result);
+    } catch (err) {
+        res.status(500).json({ "message": err.message });
+    }
+};
+
+// DELETE Fun Fact
+const deleteFunFact = async (req, res) => {
+    const stateCode = req.params.state.toUpperCase();
+    const { index } = req.body;
+
+    if (!index) return res.status(400).json({ "message": "State fun fact index value required" });
+
+    try {
+        const stateDB = await State.findOne({ stateCode });
+        if (!stateDB || !stateDB.funfacts[index - 1]) {
+            return res.status(400).json({ "message": `No fun fact found at that index for ${stateCode}` });
+        }
+
+        stateDB.funfacts.splice(index - 1, 1); // Adjusting 1-based index to 0-based[cite: 1]
+        const result = await stateDB.save();
+        res.json(result);
+    } catch (err) {
+        res.status(500).json({ "message": err.message });
+    }
+};
 // Export them correctly
-module.exports = { getAllStates };
-module.exports = { getAllStates, getState };
-module.exports = { getAllStates, getState, getFunFact };
+
+module.exports = { 
+    getAllStates, getState, getFunFact, 
+    getStateCapital, getStateNickname, createFunFact 
+};
