@@ -17,7 +17,19 @@ app.get('/', (req, res) => {
   res.send('API is running');
 });
 
+app.all('*path', (req, res) => {
 
+  res.status(404);
+
+  if (req.accepts('html')) {
+    res.send('<h1>404 Not Found</h1>');
+  } else if (req.accepts('json')) {
+    res.json({ error: '404 Not Found' });
+  } else {
+    res.type('txt').send('404 Not Found');
+  }
+
+});
 
 // Start server
 const PORT = process.env.PORT || 3500;
