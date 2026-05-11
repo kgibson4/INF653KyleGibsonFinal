@@ -14,7 +14,7 @@ mongoose.connect(process.env.DATABASE_URI)
 
 // Simple test route
 app.get('/', (req, res) => {
-  res.send('API is running');
+  res.send('<h1>States API</h1>');
 });
 
 app.all('*path', (req, res) => {

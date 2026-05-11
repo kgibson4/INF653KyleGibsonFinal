@@ -21,15 +21,21 @@ const getAllStates = async (req, res) => {
     }
 
     const mergedStates = filteredData.map(state => {
-      const match = statesDB.find(
-        db => db.stateCode === state.code
-      );
 
-      return {
-        ...state,
-        funfacts: match ? match.funfacts : []
-      };
-    });
+        const match = statesDB.find(
+            db => db.stateCode === state.code
+        );
+
+        if (match) {
+            return {
+            ...state,
+            funfacts: match.funfacts
+            };
+        }
+
+        return state;
+
+        });
 
     res.json(mergedStates);
 
@@ -45,7 +51,7 @@ const getState = async (req, res) => {
 
   if (!state) {
     return res.status(404).json({
-      message: 'Invalid state abbreviation'
+      message: 'Invalid state abbreviation parameter'
     });
   }
 
@@ -66,13 +72,14 @@ const getState = async (req, res) => {
 
 const getFunFact = async (req, res) => {
   const stateCode = req.params.state.toUpperCase();
+  const state = data.find(s => s.code === stateCode);
 
   try {
     const stateDB = await State.findOne({ stateCode });
 
     if (!stateDB || !stateDB.funfacts.length) {
-      return res.json({
-        message: `No fun facts found for ${stateCode}`
+      return res.status(404).json({
+        message: `No Fun Facts found for ${state.state}`
       });
     }
 
@@ -95,7 +102,7 @@ const getCapital = (req, res) => {
 
   if (!state) {
     return res.status(404).json({
-      message: 'Invalid state abbreviation'
+      message: 'Invalid state abbreviation parameter'
     });
   }
 
@@ -112,7 +119,7 @@ const getNickname = (req, res) => {
 
   if (!state) {
     return res.status(404).json({
-      message: 'Invalid state abbreviation'
+      message: 'Invalid state abbreviation parameter'
     });
   }
 
@@ -129,7 +136,7 @@ const getPopulation = (req, res) => {
 
   if (!state) {
     return res.status(404).json({
-      message: 'Invalid state abbreviation'
+      message: 'Invalid state abbreviation parameter'
     });
   }
 
@@ -146,7 +153,7 @@ const getAdmission = (req, res) => {
 
   if (!state) {
     return res.status(404).json({
-      message: 'Invalid state abbreviation'
+      message: 'Invalid state abbreviation parameter'
     });
   }
 
@@ -168,7 +175,7 @@ const addFunFact = async (req, res) => {
 
   if (!stateExists) {
     return res.status(404).json({
-      message: 'Invalid state abbreviation'
+      message: 'Invalid state abbreviation parameter'
     });
   }
 
@@ -228,7 +235,7 @@ const updateFunFact = async (req, res) => {
 
   if (!stateExists) {
     return res.status(404).json({
-      message: 'Invalid state abbreviation'
+      message: 'Invalid state abbreviation parameter'
     });
   }
 
@@ -251,7 +258,7 @@ const updateFunFact = async (req, res) => {
 
     if (!state || !state.funfacts.length) {
       return res.status(404).json({
-        message: `No Fun Facts found for ${stateCode}`
+        message: `No Fun Facts found for ${state.state}`
       });
     }
 
@@ -292,7 +299,7 @@ const deleteFunFact = async (req, res) => {
 
   if (!stateExists) {
     return res.status(404).json({
-      message: 'Invalid state abbreviation'
+      message: 'Invalid state abbreviation parameter'
     });
   }
 
@@ -309,7 +316,7 @@ const deleteFunFact = async (req, res) => {
 
     if (!state || !state.funfacts.length) {
       return res.status(404).json({
-        message: `No Fun Facts found for ${stateCode}`
+        message: `No Fun Facts found for ${state.state}`
       });
     }
 
