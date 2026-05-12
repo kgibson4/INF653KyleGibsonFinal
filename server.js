@@ -1,6 +1,7 @@
 const express = require('express');
 const app = express();
 const mongoose = require('mongoose');
+const path = require('path');
 require('dotenv').config();
 
 // Middleware
@@ -14,7 +15,7 @@ mongoose.connect(process.env.DATABASE_URI)
 
 // Simple test route
 app.get('/', (req, res) => {
-  res.send('<h1>States API</h1>');
+  res.sendFile(path.join(__dirname, 'index.html'));
 });
 
 app.all('*path', (req, res) => {
