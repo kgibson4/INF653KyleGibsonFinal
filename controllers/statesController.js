@@ -49,11 +49,10 @@ const getState = async (req, res) => {
   try {
     const stateDB = await State.findOne({ stateCode });
 
-    // Only include funfacts if there are actual facts stored
-    const result = { ...state };
-    if (stateDB && stateDB.funfacts && stateDB.funfacts.length > 0) {
-      result.funfacts = stateDB.funfacts;
-    }
+    const result = {
+      ...state,
+      funfacts: stateDB?.funfacts || []
+    };
 
     res.json(result);
 
@@ -176,7 +175,9 @@ const addFunFact = async (req, res) => {
       await state.save();
     }
 
-    res.json(state);
+    const updatedState = await State.findOne({ stateCode });
+
+    res.json(updatedState);
 
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -198,7 +199,7 @@ const updateFunFact = async (req, res) => {
     return res.status(400).json({ message: 'State fun fact index value required' });
   }
 
-  if (!funfact) {
+  if (!funfact || typeof funfact !== 'string') {
     return res.status(400).json({ message: 'State fun fact value required' });
   }
 
@@ -207,16 +208,14 @@ const updateFunFact = async (req, res) => {
 
     if (!state || !state.funfacts || !state.funfacts.length) {
       return res.status(404).json({
-        // Use full state name from JSON data
         message: `No Fun Facts found for ${stateExists.state}`
       });
     }
 
     const factIndex = index - 1;
 
-    if (!state.funfacts[factIndex]) {
+    if (factIndex < 0 || factIndex >= state.funfacts.length) {
       return res.status(404).json({
-        // Use full state name from JSON data
         message: `No Fun Fact found at that index for ${stateExists.state}`
       });
     }
@@ -224,7 +223,9 @@ const updateFunFact = async (req, res) => {
     state.funfacts[factIndex] = funfact;
     await state.save();
 
-    res.json(state);
+    const updatedState = await State.findOne({ stateCode });
+
+    res.json(updatedState);
 
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -251,24 +252,22 @@ const deleteFunFact = async (req, res) => {
 
     if (!state || !state.funfacts || !state.funfacts.length) {
       return res.status(404).json({
-        // Use full state name from JSON data
         message: `No Fun Facts found for ${stateExists.state}`
       });
     }
 
     const factIndex = index - 1;
 
-    if (!state.funfacts[factIndex]) {
+    if (factIndex < 0 || factIndex >= state.funfacts.length) {
       return res.status(404).json({
-        // Use full state name from JSON data
         message: `No Fun Fact found at that index for ${stateExists.state}`
       });
     }
 
     state.funfacts.splice(factIndex, 1);
     await state.save();
-
-    res.json(state);
+    const updatedState = await State.findOne({ stateCode });
+    res.json(updatedState);
 
   } catch (err) {
     res.status(500).json({ message: err.message });

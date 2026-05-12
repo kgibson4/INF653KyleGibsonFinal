@@ -15,10 +15,10 @@ mongoose.connect(process.env.DATABASE_URI)
 
 // Simple test route
 app.get('/', (req, res) => {
-  res.status(200).sendFile(path.join(__dirname, 'index.html'));
+  res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-app.all('*path', (req, res) => {
+app.all('/{*any}', (req, res) => {
 
   res.status(404);
 
